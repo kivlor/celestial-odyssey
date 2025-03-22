@@ -1,12 +1,6 @@
-import {
-  env as transformerEnv,
-  pipeline,
-} from "https://cdn.jsdelivr.net/npm/@xenova/transformers";
+import { pipeline } from "@huggingface/transformers";
 import { load } from "https://deno.land/std@0.224.0/dotenv/mod.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-transformerEnv.allowLocalModels = false;
-transformerEnv.backends.onnx.wasm.numThreads = 1;
 
 const env = await load();
 

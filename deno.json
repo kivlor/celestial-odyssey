@@ -1,0 +1,47 @@
+{
+  "lock": false,
+  "tasks": {
+    "check": "deno fmt --check && deno lint && deno check **/*.ts && deno check **/*.tsx",
+    "cli": "echo \"import '\\$fresh/src/dev/cli.ts'\" | deno run --unstable -A -",
+    "manifest": "deno task cli manifest $(pwd)",
+    "start": "deno run -A --watch=static/,routes/ dev.ts",
+    "build": "deno run -A dev.ts build",
+    "preview": "deno run -A main.ts",
+    "update": "deno run -A -r https://fresh.deno.dev/update .",
+    "index-stars": "deno run -A indexStars.ts"
+  },
+  "lint": {
+    "rules": {
+      "tags": ["fresh", "recommended"]
+    }
+  },
+  "exclude": ["**/_fresh/*"],
+  "imports": {
+    "$fresh/": "https://deno.land/x/fresh@1.7.3/",
+    "$std/": "https://deno.land/std@0.216.0/",
+    "@openai/openai": "jsr:@openai/openai@^4.96.2",
+    "@preact/signals": "https://esm.sh/*@preact/signals@1.2.2",
+    "@preact/signals-core": "https://esm.sh/*@preact/signals-core@1.5.1",
+    "@std/dotenv": "jsr:@std/dotenv@0.225.3",
+    "@std/html": "jsr:@std/html@1.0.3",
+    "@supabase/supabase-js": "jsr:@supabase/supabase-js@^2.49.4",
+    "octokit": "https://esm.sh/octokit@4.1.3?dts",
+    "octokit/": "https://esm.sh/octokit@4.1.3?dts/",
+    "preact": "https://esm.sh/preact@10.22.0",
+    "preact/": "https://esm.sh/preact@10.22.0/",
+    "tailwindcss": "npm:tailwindcss@3.4.1",
+    "tailwindcss/": "npm:/tailwindcss@3.4.1/",
+    "tailwindcss/plugin": "npm:/tailwindcss@3.4.1/plugin.js"
+  },
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "jsxImportSource": "preact"
+  },
+  "nodeModulesDir": "auto",
+  "deploy": {
+    "project": "17e42046-b393-4661-9882-ecdf8b392bac",
+    "exclude": ["**/node_modules"],
+    "include": [],
+    "entrypoint": "main.ts"
+  }
+}

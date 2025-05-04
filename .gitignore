@@ -5,7 +5,8 @@
 .env.production.local
 .env.local
 
-# temp dirs
+# supabase temp dirs
+.branches
 .temp
 
 # Fresh build directory

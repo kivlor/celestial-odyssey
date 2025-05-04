@@ -14,36 +14,44 @@ const openai = new OpenAI({
 });
 
 const supabase = createClient(
-  Deno.env.get("SUPABASE_API_URL") ?? "",
-  Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+  Deno.env.get("SUPABASE_URL") ?? "",
+  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
 );
 
 async function searchStars(query: string): Promise<SearchResult[]> {
-  const embedding = await openai.embeddings.create({
-    input: query,
-    model: "text-embedding-3-small",
-    encoding_format: "float",
-  });
+  try {
+    const embedding = await openai.embeddings.create({
+      input: query,
+      model: "text-embedding-3-small",
+      encoding_format: "float",
+    });
 
-  console.log(embedding.data[0].embedding);
+    const { data: stars, error } = await supabase.rpc(
+      "search_stars",
+      {
+        query_embedding: embedding.data[0].embedding,
+        match_threshold: 0.3,
+        match_count: 20,
+      },
+    );
 
-  const { data: stars } = await supabase.rpc(
-    "search_stars",
-    {
-      query_embedding: embedding.data[0].embedding,
-      match_threshold: 0.78,
-      match_count: 10,
-    },
-  );
+    if (error) {
+      console.error("Supabase RPC error:", error);
+      return [];
+    }
 
-  console.log(stars);
-
-  return stars.map((star: StarRecord) => ({
-    id: star.id,
-    name: star.repo.split("/")[1] ?? "",
-    link: `https://github.com/${star.repo}`,
-    similarity: star.similarity ?? 0,
-  }));
+    return stars?.map((star: StarRecord) => ({
+      id: star.id,
+      repo: star.repo,
+      readme: star.readme,
+      name: star.repo.split("/")[1] ?? "",
+      link: `https://github.com/${star.repo}`,
+      similarity: star.similarity ?? 0,
+    })) || [];
+  } catch (error) {
+    console.error("Error in searchStars:", error);
+    return [];
+  }
 }
 
 export const handler: Handlers<Data> = {
@@ -51,7 +59,7 @@ export const handler: Handlers<Data> = {
     const url = new URL(req.url);
     const query = url.searchParams.get("query") || "";
 
-    const results = await searchStars(query);
+    const results = query !== "" ? await searchStars(query) : [];
 
     return ctx.render({ results, query });
   },
@@ -65,7 +73,7 @@ export default function Home({ data }: PageProps<Data>) {
       <div class="max-w-screen-md mx-auto space-y-4">
         <header class="space-y-2">
           <h1 class="text-3xl font-bold">Celestial Odyssey</h1>
-          <p>Search the stars for your next project</p>
+          <p>Search your Github Stars</p>
         </header>
 
         <main class="space-y-2">

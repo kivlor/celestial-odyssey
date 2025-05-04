@@ -12,10 +12,15 @@
   },
   "lint": {
     "rules": {
-      "tags": ["fresh", "recommended"]
+      "tags": [
+        "fresh",
+        "recommended"
+      ]
     }
   },
-  "exclude": ["**/_fresh/*"],
+  "exclude": [
+    "**/_fresh/*"
+  ],
   "imports": {
     "$fresh/": "https://deno.land/x/fresh@1.7.3/",
     "$std/": "https://deno.land/std@0.216.0/",
@@ -39,8 +44,10 @@
   },
   "nodeModulesDir": "auto",
   "deploy": {
-    "project": "17e42046-b393-4661-9882-ecdf8b392bac",
-    "exclude": ["**/node_modules"],
+    "project": "a0590f9e-722e-4e9f-8723-d4050d543937",
+    "exclude": [
+      "**/node_modules"
+    ],
     "include": [],
     "entrypoint": "main.ts"
   }

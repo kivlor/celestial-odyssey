@@ -1,0 +1,7 @@
+{
+  "imports": {
+    "@openai/openai": "jsr:@openai/openai@^4.96.2",
+    "octokit": "https://esm.sh/octokit@4.1.3?dts",
+    "octokit/": "https://esm.sh/octokit@4.1.3?dts/"
+  }
+}

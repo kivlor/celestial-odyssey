@@ -9,15 +9,5 @@ import "$std/dotenv/load.ts";
 import { start } from "$fresh/server.ts";
 import manifest from "./fresh.gen.ts";
 import config from "./fresh.config.ts";
-import { embedStars } from "./embed.ts";
 
 await start(manifest, config);
-
-if (!Deno.args.includes("build")) {
-  Deno.cron(
-    "0 0 * * *",
-    async () => {
-      await embedStars();
-    },
-  );
-}

@@ -1,12 +1,8 @@
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-
 import { createClient } from "jsr:@supabase/supabase-js";
 import { Octokit } from "octokit";
 import OpenAI from "@openai/openai";
 
-import { GithubRepo } from "../../../types.ts";
-
-console.log(Deno.env.get("SUPABASE_URL"));
+import { GithubRepo } from "./types.ts";
 
 const octokit = new Octokit({ auth: Deno.env.get("GH_AUTH_TOKEN") });
 
@@ -19,7 +15,7 @@ const supabase = createClient(
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
 );
 
-async function getStarredRepos(limit?: number): Promise<GithubRepo[]> {
+export async function getStarredRepos(limit?: number): Promise<GithubRepo[]> {
   if (limit) {
     const response = await octokit.request("GET /user/starred", {
       headers: {
@@ -42,7 +38,7 @@ async function getStarredRepos(limit?: number): Promise<GithubRepo[]> {
   }
 }
 
-async function getRepoReadme(name: string): Promise<string> {
+export async function getRepoReadme(name: string): Promise<string> {
   const readme = await octokit.request(`GET /repos/${name}/readme`, {
     headers: {
       "Accept": "application/vnd.github.raw+json",
@@ -72,7 +68,7 @@ async function getRepoReadme(name: string): Promise<string> {
   return readmeText.trim();
 }
 
-async function generateEmbedding(data: string): Promise<number[]> {
+export async function generateEmbedding(data: string): Promise<number[]> {
   let embedding: number[] = [];
 
   try {
@@ -90,7 +86,7 @@ async function generateEmbedding(data: string): Promise<number[]> {
   return embedding;
 }
 
-async function embedStars(limit?: number): Promise<void> {
+export async function embedStars(limit?: number): Promise<void> {
   console.log("fetching starred repositories");
   let starred: GithubRepo[] = [];
 
@@ -152,8 +148,11 @@ async function embedStars(limit?: number): Promise<void> {
   return;
 }
 
-Deno.serve(() => {
-  EdgeRuntime.waitUntil(embedStars());
-
-  return new Response("ok\n");
-});
+if (!Deno.args.includes("build")) {
+  Deno.cron(
+    "0 0 * * *",
+    async () => {
+      await embedStars();
+    },
+  );
+}

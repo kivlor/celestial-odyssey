@@ -81,7 +81,7 @@ async function generateEmbedding(
   return embedding;
 }
 
-export async function embedStars(limit?: number): Promise<void> {
+async function embedStars(limit?: number): Promise<void> {
   const octokit = new Octokit({ auth: Deno.env.get("GH_AUTH_TOKEN") });
 
   const openai = new OpenAI({
@@ -153,3 +153,7 @@ export async function embedStars(limit?: number): Promise<void> {
 
   return;
 }
+
+Deno.cron("embed", "0 0 * * *", async () => {
+  await embedStars();
+});

@@ -4,18 +4,10 @@ import OpenAI from "@openai/openai";
 
 import { GithubRepo } from "./types.ts";
 
-const octokit = new Octokit({ auth: Deno.env.get("GH_AUTH_TOKEN") });
-
-const openai = new OpenAI({
-  apiKey: Deno.env.get("OPENAI_API_KEY"),
-});
-
-const supabase = createClient(
-  Deno.env.get("SUPABASE_URL") ?? "",
-  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-);
-
-export async function getStarredRepos(limit?: number): Promise<GithubRepo[]> {
+async function getStarredRepos(
+  octokit: Octokit,
+  limit?: number,
+): Promise<GithubRepo[]> {
   if (limit) {
     const response = await octokit.request("GET /user/starred", {
       headers: {
@@ -38,7 +30,7 @@ export async function getStarredRepos(limit?: number): Promise<GithubRepo[]> {
   }
 }
 
-export async function getRepoReadme(name: string): Promise<string> {
+async function getRepoReadme(octokit: Octokit, name: string): Promise<string> {
   const readme = await octokit.request(`GET /repos/${name}/readme`, {
     headers: {
       "Accept": "application/vnd.github.raw+json",
@@ -68,7 +60,10 @@ export async function getRepoReadme(name: string): Promise<string> {
   return readmeText.trim();
 }
 
-export async function generateEmbedding(data: string): Promise<number[]> {
+async function generateEmbedding(
+  openai: OpenAI,
+  data: string,
+): Promise<number[]> {
   let embedding: number[] = [];
 
   try {
@@ -86,12 +81,23 @@ export async function generateEmbedding(data: string): Promise<number[]> {
   return embedding;
 }
 
-export async function embedStars(limit?: number): Promise<void> {
+async function embedStars(limit?: number): Promise<void> {
+  const octokit = new Octokit({ auth: Deno.env.get("GH_AUTH_TOKEN") });
+
+  const openai = new OpenAI({
+    apiKey: Deno.env.get("OPENAI_API_KEY"),
+  });
+
+  const supabase = createClient(
+    Deno.env.get("SUPABASE_URL") ?? "",
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+  );
+
   console.log("fetching starred repositories");
   let starred: GithubRepo[] = [];
 
   try {
-    starred = await getStarredRepos(limit);
+    starred = await getStarredRepos(octokit, limit);
   } catch (error) {
     console.log(`failed to fetch stars: ${error}`);
     Deno.exit();
@@ -107,7 +113,7 @@ export async function embedStars(limit?: number): Promise<void> {
 
     let readme = "";
     try {
-      readme = await getRepoReadme(full_name);
+      readme = await getRepoReadme(octokit, full_name);
     } catch (error) {
       console.error(`${full_name} skipped.`, error);
       continue;
@@ -115,7 +121,7 @@ export async function embedStars(limit?: number): Promise<void> {
 
     let embedding: number[] = [];
     try {
-      embedding = await generateEmbedding(readme);
+      embedding = await generateEmbedding(openai, readme);
     } catch (error) {
       console.error(`${full_name} skipped.`, error);
       continue;

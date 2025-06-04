@@ -100,7 +100,7 @@ export async function embedStars(limit?: number): Promise<void> {
     starred = await getStarredRepos(octokit, limit);
   } catch (error) {
     console.log(`failed to fetch stars: ${error}`);
-    Deno.exit();
+    return;
   }
 
   console.log(`creating embeddings for ${starred.length} repositories`);
